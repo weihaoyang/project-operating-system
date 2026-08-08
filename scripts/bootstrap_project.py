@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from datetime import date
 from pathlib import Path
 
@@ -73,13 +74,13 @@ For an existing project, run `adopt_project.py --profile auto` first. Preserve e
 
 Do not perform unrelated cleanup or speculative refactoring. Preserve existing user changes.
 """,
-        root / "docs" / "PROJECT_STATUS.yaml": f"""project: {args.project_name!r}
-profile: {args.profile!r}
-updated: {today!r}
+        root / "docs" / "PROJECT_STATUS.yaml": f"""project: {json.dumps(args.project_name, ensure_ascii=False)}
+profile: {json.dumps(args.profile)}
+updated: {json.dumps(today)}
 objective: ""
 success_condition: ""
-phase: {phase!r}
-status: {status!r}
+phase: {json.dumps(phase)}
+status: {json.dumps(status)}
 current_blocker: ""
 next_action: ""
 active_workers: []
@@ -88,7 +89,7 @@ closed_routes: []
 last_commit: ""
 remote_state: "unknown"
 adoption:
-  mode: {args.mode!r}
+  mode: {json.dumps(args.mode)}
   inventory: "docs/PROJECT_INVENTORY.json"
   requires_reconciliation: {str(args.mode == "adopt").lower()}
 """,

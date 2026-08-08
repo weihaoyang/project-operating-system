@@ -49,24 +49,24 @@
 技术债无人负责   → 记录 owner、影响、严重度和偿还条件
 ```
 
-## 使用
+## 安装与使用
 
-将此 skill 安装到 Codex 的 skills 目录后，在任意项目中使用：
+在 Codex 中使用 skill-installer 安装 GitHub 仓库 `weihaoyang/project-operating-system`，或将本仓库目录复制到 Codex 配置的 `skills/project-operating-system` 目录。安装完成后，在任意项目中使用：
 
 ```text
-使用 project-operating-system 接管当前项目并继续推进。
+使用 $project-operating-system 接管当前项目并继续推进。
 ```
 
-接管已有项目：
+如果需要直接运行随 skill 提供的脚本，使用已安装 skill 的实际路径，不要把路径解析到目标项目：
 
 ```powershell
-python scripts/adopt_project.py --project-root <project> --profile auto
+python <installed-skill-path>\scripts\adopt_project.py --project-root <project> --profile auto
 ```
 
 新项目在方案确认后初始化：
 
 ```powershell
-python scripts/bootstrap_project.py --project-root <project> --project-name "Project" --profile standard
+python <installed-skill-path>\scripts\bootstrap_project.py --project-root <project> --project-name "Project" --profile standard
 ```
 
 ## 设计底线

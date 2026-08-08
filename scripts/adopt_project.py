@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import subprocess
 from datetime import date
@@ -12,8 +13,20 @@ from pathlib import Path
 
 
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", ".cache", "__pycache__"}
-HIGH_RISK_MARKERS = {"clinical", "medical", "trading", "finance", "payment", "production", "deploy", "training", "model", "data", "migration", "sql", "qmt", "pinn"}
+HIGH_RISK_MARKERS = {"clinical", "medical", "trading", "finance", "payment", "production", "deploy", "training", "migration", "sql", "qmt", "pinn"}
 MANIFESTS = {"package.json", "pyproject.toml", "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "build.gradle", "dockerfile", "docker-compose.yml", "pnpm-lock.yaml", "package-lock.json"}
+WORKFLOW_FILES = (
+    "AGENTS.md",
+    "docs/PROJECT_STATUS.yaml",
+    "docs/TASK_CONTRACT.md",
+    "docs/KNOWLEDGE_BASE.md",
+    "docs/ARCHITECTURE_DECISIONS.md",
+    "docs/EVIDENCE_INDEX.jsonl",
+    "docs/ACTIVE_WORK.jsonl",
+    "docs/TECH_DEBT.yaml",
+    "docs/research/INDEX.yaml",
+    "docs/PROJECT_INVENTORY.json",
+)
 
 
 def run(root: Path, command: list[str]) -> str:
@@ -42,8 +55,9 @@ def project_inventory(root: Path) -> dict:
     lower_top = {item.lower() for item in top_level}
     manifests = sorted(item for item in top_level if item.lower() in MANIFESTS)
     source_dirs = sorted(item for item in top_level if item.lower() in {"src", "app", "apps", "lib", "server", "frontend", "backend", "scripts", "tests", "test", "docs"})
-    signals = (root.name.lower() + " " + " ".join(top_level)).lower()
-    high_risk = any(marker in signals for marker in HIGH_RISK_MARKERS)
+    signal_text = " ".join((root.name, *top_level)).lower()
+    signal_tokens = {token for token in re.split(r"[^a-z0-9]+", signal_text) if token}
+    high_risk = bool(signal_tokens & HIGH_RISK_MARKERS)
     git = git_inventory(root)
     if high_risk:
         recommended = "high-risk"
@@ -59,10 +73,7 @@ def project_inventory(root: Path) -> dict:
         "manifests": manifests,
         "source_dirs": source_dirs,
         "git": git,
-        "existing_workflow_files": [
-            item for item in ("AGENTS.md", "docs/PROJECT_STATUS.yaml", "docs/TASK_CONTRACT.md", "docs/KNOWLEDGE_BASE.md", "docs/ARCHITECTURE_DECISIONS.md")
-            if (root / item).exists()
-        ],
+        "existing_workflow_files": [item for item in WORKFLOW_FILES if (root / item).exists()],
         "recommended_profile": recommended,
         "limitations": ["Inventory is structural evidence only; it does not infer feature completeness or project intent."],
     }
@@ -90,6 +101,9 @@ def main() -> int:
     if target.exists() and not args.refresh_inventory:
         print(f"EXISTS {target} (use --refresh-inventory to replace generated inventory)")
     else:
+        inventory["existing_workflow_files"] = sorted(
+            set(inventory["existing_workflow_files"]) | {"docs/PROJECT_INVENTORY.json"}
+        )
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"CREATED {target}")
