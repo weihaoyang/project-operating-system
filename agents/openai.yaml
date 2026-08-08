@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Operating System"
+  short_description: "低 token、可恢复、最小充分验证的跨项目工作流"
+  default_prompt: "Use $project-operating-system to initialize or continue this project with architecture research, state recovery, efficient execution, knowledge capture, and evidence-based closeout."
